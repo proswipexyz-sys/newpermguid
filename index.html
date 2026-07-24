@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEWPERM — Docs</title>
+<style>
+  :root{
+    --bg: #0a0a0a;
+    --bg-glow: radial-gradient(ellipse 900px 500px at 50% -10%, rgba(139,0,20,0.18), transparent 60%);
+    --panel: #131111;
+    --panel-border: #332627;
+    --panel-border-hover: #5a2a2e;
+    --text: #ffffff;
+    --text-dim: #c7bcbc;
+    --text-faint: #8f8080;
+    --accent: #e0324a;
+    --accent-soft: rgba(224,50,74,0.14);
+    --sidebar-w: 290px;
+    --header-h: 64px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg-glow), var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", Roboto, Arial, sans-serif;
+    min-height: 100vh;
+  }
+  a{ color: inherit; text-decoration: none; }
+
+  /* ---------- Header ---------- */
+  header{
+    height: var(--header-h);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 0 32px;
+    border-bottom: 1px solid var(--panel-border);
+    position: sticky;
+    top:0;
+    background: rgba(10,10,10,0.9);
+    backdrop-filter: blur(10px);
+    z-index: 50;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:700;
+    font-size:17px;
+    letter-spacing:0.2px;
+  }
+  .brand svg{ width:23px; height:23px; flex-shrink:0; }
+
+  /* ---------- Layout ---------- */
+  .shell{
+    display:flex;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Sidebar ---------- */
+  aside.sidebar{
+    width: var(--sidebar-w);
+    flex-shrink:0;
+    padding: 28px 14px 40px;
+    position: sticky;
+    top: var(--header-h);
+    height: calc(100vh - var(--header-h));
+    overflow-y:auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
+  }
+  aside.sidebar::-webkit-scrollbar{ width:6px; }
+  aside.sidebar::-webkit-scrollbar-track{ background:transparent; }
+  aside.sidebar::-webkit-scrollbar-thumb{ background: var(--accent); border-radius:3px; }
+  aside.sidebar::-webkit-scrollbar-thumb:hover{ background:#ff4a63; }
+  .search-box{
+    display:flex; align-items:center; gap:8px;
+    background: var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:8px;
+    padding:10px 12px;
+    margin: 0 8px 22px;
+    color: var(--text-faint);
+    font-size:14px;
+  }
+  .search-box svg{ width:15px; height:15px; flex-shrink:0; }
+  .nav-group{ margin-bottom: 10px; }
+  .nav-group-title{
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color: var(--text-faint);
+    padding: 14px 18px 6px;
+    font-weight:700;
+  }
+  .nav-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding: 11px 18px;
+    margin: 2px 6px;
+    border-radius:8px;
+    font-size:14.5px;
+    color: var(--text-dim);
+    cursor:pointer;
+    border-left:2px solid transparent;
+    transition: background .12s ease, color .12s ease;
+  }
+  .nav-item svg{ width:16px; height:16px; flex-shrink:0; opacity:.85; }
+  .nav-item:hover{ background: rgba(255,255,255,0.04); color: var(--text); }
+  .nav-item.active{
+    background: var(--accent-soft);
+    color: var(--text);
+    border-left-color: var(--accent);
+    font-weight:600;
+  }
+
+  /* Collapsible category */
+  .nav-category{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding: 11px 18px;
+    margin: 2px 6px;
+    border-radius:8px;
+    font-size:14.5px;
+    font-weight:600;
+    color: var(--text);
+    cursor:pointer;
+    transition: background .12s ease;
+  }
+  .nav-category:hover{ background: rgba(255,255,255,0.04); }
+  .nav-category .cat-left{ display:flex; align-items:center; gap:10px; }
+  .nav-category svg.cat-icon{ width:16px; height:16px; opacity:.85; }
+  .nav-category svg.chev{ width:14px; height:14px; color: var(--text-faint); transition: transform .2s ease; flex-shrink:0; }
+  .nav-category.open svg.chev{ transform: rotate(180deg); }
+  .nav-subitems{
+    max-height:0;
+    overflow:hidden;
+    transition: max-height .25s ease;
+  }
+  .nav-category.open + .nav-subitems{ max-height: 260px; }
+  .nav-subitems .nav-item{ padding-left: 40px; font-size:14px; }
+
+  /* ---------- Main content ---------- */
+  main{
+    flex:1;
+    min-width:0;
+    padding: 48px 64px 110px;
+  }
+  .doc-page{ display:none; max-width: 860px; }
+  .doc-page.active{ display:block; animation: fade .25s ease; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+
+  .eyebrow{
+    font-size:12.5px; color:var(--accent); font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase; margin-bottom:10px;
+  }
+  h1.page-title{
+    font-size: 38px; margin:0 0 14px; font-weight:800; letter-spacing:-.01em;
+  }
+  p.page-lead{
+    color: var(--text-dim); font-size:16.5px; line-height:1.75; margin: 0 0 38px;
+  }
+  h2.section-title{
+    font-size:21px; font-weight:700; margin: 38px 0 14px;
+    padding-bottom:9px; border-bottom:1px solid var(--panel-border);
+  }
+  p, li{ color: var(--text-dim); font-size:16px; line-height:1.85; }
+  ol, ul{ padding-left: 22px; margin: 10px 0; }
+  li{ margin-bottom:8px; }
+  li::marker{ color: var(--accent); }
+  code, .inline-code{
+    background: var(--panel); border:1px solid var(--panel-border);
+    padding:2px 7px; border-radius:5px; font-size:14px; color:#ff9aa6;
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+  }
+  .code-block{
+    background: var(--panel); border:1px solid var(--panel-border);
+    border-radius:10px; padding:16px 18px; margin: 16px 0;
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    font-size:14px; color:#e6dede; overflow-x:auto; line-height:1.7;
+    white-space: pre-wrap;
+  }
+  .callout{
+    display:flex; gap:12px;
+    background: var(--panel); border:1px solid var(--panel-border);
+    border-left: 3px solid var(--accent);
+    border-radius:8px; padding:16px 18px; margin: 20px 0;
+    font-size:15px; color: var(--text-dim);
+  }
+  .callout svg{ width:19px; height:19px; flex-shrink:0; color:var(--accent); margin-top:1px; }
+  .callout strong{ color: var(--text); }
+  .callout.warn{ border-left-color:#f0a83a; }
+  .callout.warn svg{ color:#f0a83a; }
+
+  .faq{
+    border:1px solid var(--panel-border); border-radius:10px;
+    overflow:hidden; margin: 20px 0;
+  }
+  .faq-item{ border-bottom:1px solid var(--panel-border); }
+  .faq-item:last-child{ border-bottom:none; }
+  .faq-question{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; padding:16px 18px; background:var(--panel);
+    font-weight:700; font-size:15.5px; color:var(--text); cursor:pointer;
+    transition: background .12s ease;
+  }
+  .faq-question:hover{ background: rgba(255,255,255,0.04); }
+  .faq-question svg{ width:14px; height:14px; color:var(--text-faint); transition: transform .2s ease; flex-shrink:0; }
+  .faq-item.open .faq-question svg{ transform: rotate(180deg); }
+  .faq-answer{ max-height:0; overflow:hidden; transition: max-height .25s ease; background:var(--panel); }
+  .faq-item.open .faq-answer{ max-height: 500px; }
+  .faq-answer-inner{ padding:0 18px 18px; }
+  .faq-answer-inner p{ margin:0 0 12px; }
+  .faq-answer-inner p:last-child{ margin-bottom:0; }
+
+  .card-grid{
+    display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin: 18px 0 8px;
+  }
+  .card{
+    background: var(--panel); border:1px solid var(--panel-border);
+    border-radius:10px; padding:16px 18px; transition: border-color .15s ease, transform .15s ease;
+    cursor:pointer;
+  }
+  .card:hover{ border-color: var(--panel-border-hover); transform: translateY(-2px); }
+  .card-title{ font-size:15px; font-weight:700; margin-bottom:5px; display:flex; align-items:center; gap:8px;}
+  .card-title svg{ width:16px; height:16px; color: var(--accent); }
+  .card-desc{ font-size:13.5px; color: var(--text-faint); line-height:1.6; }
+
+  .welcome-emoji{ font-size:44px; margin-bottom:10px; }
+
+  .prev-next{
+    display:flex; justify-content:space-between; margin-top:56px;
+    padding-top:20px; border-top:1px solid var(--panel-border);
+  }
+  .pn-link{ font-size:13px; color: var(--text-faint); }
+  .pn-link .pn-label{ display:block; font-size:11px; margin-bottom:3px; }
+  .pn-link .pn-name{ color: var(--text); font-weight:600; font-size:14.5px; }
+  .pn-link:hover .pn-name{ color: var(--accent); }
+
+  @media (max-width: 900px){
+    aside.sidebar{ display:none; }
+    main{ padding: 28px 20px 80px; }
+    .card-grid{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Brand tabs (BIOS FLASH) ---------- */
+  .brand-tabs{
+    display:flex; flex-wrap:wrap; gap:8px; margin: 22px 0 4px;
+  }
+  .brand-tab{
+    background: var(--panel); border:1px solid var(--panel-border);
+    border-radius:8px; padding:9px 16px; font-size:14px; font-weight:600;
+    color: var(--text-dim); cursor:pointer; transition: background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .brand-tab:hover{ border-color: var(--panel-border-hover); color: var(--text); }
+  .brand-tab.active{
+    background: var(--accent-soft); color: var(--text); border-color: var(--accent);
+  }
+  .brand-panel{ display:none; }
+  .brand-panel.active{ display:block; animation: fade .2s ease; }
+  .video-link{
+    display:inline-flex; align-items:center; gap:8px;
+    background: var(--panel); border:1px solid var(--panel-border);
+    border-radius:8px; padding:10px 14px; margin-top:8px;
+    font-size:14px; font-weight:600; color: var(--text);
+    transition: border-color .12s ease;
+  }
+  .video-link:hover{ border-color: var(--accent); color: var(--accent); }
+  .video-link svg{ width:16px; height:16px; color: var(--accent); flex-shrink:0; }
+  .video-embed{
+    position:relative; padding-bottom:56.25%; height:0; overflow:hidden;
+    border-radius:10px; border:1px solid var(--panel-border); margin:16px 0; background:var(--panel);
+  }
+  .video-embed iframe{
+    position:absolute; top:0; left:0; width:100%; height:100%; border:0;
+  }
+
+  /* ---------- Scroll reveal ---------- */
+  .reveal{
+    opacity:0;
+    transform: translateY(28px);
+    transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1);
+    will-change: opacity, transform;
+  }
+  .reveal.visible{
+    opacity:1;
+    transform:none;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ transition:none; opacity:1; transform:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L21 6.5V13C21 17.5 17.5 21.2 12 22C6.5 21.2 3 17.5 3 13V6.5L12 2Z" stroke="#e0324a" stroke-width="1.6" fill="rgba(224,50,74,0.15)"/><path d="M8.5 12.5L11 15L15.5 9.5" stroke="#e0324a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    NEWPERM
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      ドキュメントを検索…
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">はじめに</div>
+      <div class="nav-item active" data-page="welcome">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 12H3M9 6l-6 6 6 6"/><path d="M14 6h7v12h-7"/></svg>
+        👋 ようこそ！
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-category" data-cat="win-reinstall" data-page="win-reinstall-overview">
+        <span class="cat-left">
+          <svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
+          Windows再インストール
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="nav-subitems">
+        <div class="nav-item" data-page="bios-flash-va">BIOS FLASH (VA)</div>
+        <div class="nav-item" data-page="normal-reinstall">通常の再インストール</div>
+        <div class="nav-item" data-page="raid-reinstall-amd">RAID再インストール(AMD)</div>
+        <div class="nav-item" data-page="raid-reinstall-intel">RAID再インストール(INTEL)</div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-item" data-page="bios-settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1 1.55V21a2 2 0 11-4 0v-.09a1.7 1.7 0 00-1-1.55 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.55-1H3a2 2 0 110-4h.09a1.7 1.7 0 001.55-1 1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H9a1.7 1.7 0 001-1.55V3a2 2 0 114 0v.09a1.7 1.7 0 001 1.55 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V9a1.7 1.7 0 001.55 1H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.55 1z"/></svg>
+        BIOS 設定
+      </div>
+      <div class="nav-item" data-page="windows-defender">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>
+        Windows defender
+      </div>
+      <div class="nav-item" data-page="important-notes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        重要注意事項
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">設定</div>
+      <div class="nav-item" data-page="windows-settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><circle cx="8" cy="6.5" r="0.6" fill="currentColor" stroke="none"/></svg>
+        Windows設定
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-category" data-cat="file-tab">
+        <span class="cat-left">
+          <svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6l2 3h8v11a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+          ファイル
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="nav-subitems">
+        <div class="nav-item" data-page="tools-2c-b2">ダウンロード</div>
+        <div class="nav-item" data-page="network">起動</div>
+        <div class="nav-item" data-page="new-item">インターネット</div>
+        <div class="nav-item" data-page="extra-safety">追加の安全対策</div>
+        <div class="nav-item" data-page="important-settings">VPNの使用</div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-item" data-page="finishing">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+        仕上げ
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-item" data-page="fn-tournament">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4"/></svg>
+        FNトーナメント
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-category" data-cat="other-tab">
+        <span class="cat-left">
+          <svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>
+          その他
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="nav-subitems">
+        <div class="nav-item" data-page="caution-items">遅延禁止</div>
+        <div class="nav-item" data-page="mac-permanent">フルパーマネント MAC 変更なし</div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">サポート</div>
+      <div class="nav-item" data-page="common-errors">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+        よくあるエラー修正
+      </div>
+      <div class="nav-item" data-page="completion">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+        完了
+      </div>
+    </div>
+  </aside>
+
+  <main>
+
+    <!-- Welcome -->
+    <section class="doc-page active" id="page-welcome">
+      <div class="eyebrow">Docs / はじめに</div>
+      <div class="welcome-emoji">👋</div>
+      <h1 class="page-title">ようこそ！</h1>
+      <p class="page-lead">NEWPERM のドキュメントサイトへようこそ。左のメニューから、目的の項目を選んでください。Windowsの再インストール手順、BIOSの設定、Windows Defenderの扱い、利用にあたっての重要な注意事項をまとめています。</p>
+
+      <div class="card-grid">
+        <div class="card" data-goto="win-reinstall-overview">
+          <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>Windows再インストール</div>
+          <div class="card-desc">環境に合わせた再インストール手順はこちら。</div>
+        </div>
+        <div class="card" data-goto="important-notes">
+          <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>重要注意事項</div>
+          <div class="card-desc">はじめる前に必ずご確認ください。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Windows再インストール (overview) -->
+    <section class="doc-page" id="page-win-reinstall-overview">
+      <div class="eyebrow">Docs</div>
+      <h1 class="page-title">Windows再インストール</h1>
+      <p class="page-lead">環境に合わせた再インストール手順の一覧です。まずは以下をご確認のうえ、該当する手順に進んでください。</p>
+
+      <div class="callout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        <div>
+          <strong>情報：</strong> 再インストール方法は2種類あります。ご自身の状況に最適な方法をお選びください。<br>
+          testの場合、Windows を再インストールする前にBIOSをFLASHしてください。<br>
+          testがアンインストールされていることを確認してください。<br>
+          <span style="font-size:13px; color:var(--text-faint);">（点滅表示はtest専用です）</span>
+        </div>
+      </div>
+
+      <div class="faq">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>どの方法を選べばいいですか？</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p><strong>フォートナイト</strong>：必ず通常の再インストールを使用してください。同じPCでHWIDが3回以上BANされた場合は、Intel RAID再インストールまたはAMD RAID再インストールの方法を使用してください。</p>
+              <p><strong>RUST/APEX + その他のEAC/BEゲーム</strong>：Intel RAID再インストールまたはAMD RAID再インストールの方法を使用してください。</p>
+              <p><strong>VALORANT</strong>：Intel RAID再インストールまたはAMD RAID再インストールを使用してください。</p>
+              <p><strong>CODシリーズ</strong>：Intel RAID再インストールまたはAMD RAID再インストールの方法を使用してください。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="welcome"><span class="pn-label">前へ</span><span class="pn-name">← ようこそ！</span></a>
+        <a class="pn-link" data-goto="bios-flash-va" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">BIOS FLASH (VA) →</span></a>
+      </div>
+    </section>
+
+    <!-- BIOS FLASH (VA) -->
+    <section class="doc-page" id="page-bios-flash-va">
+      <div class="eyebrow">Docs / Windows再インストール</div>
+      <h1 class="page-title">BIOS FLASH (VA)</h1>
+      <p class="page-lead">VA環境向けのBIOSアップデート(フラッシュ)手順です。マザーボードのメーカーによって使用するツールが異なります。下のタブからメーカーを選んで手順をご確認ください。作業前に必ず電源環境を確認してください。</p>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div><strong>注意：</strong> BIOSフラッシュ中に電源が落ちると、マザーボードが起動しなくなる可能性があります。ノートPCの場合はACアダプタを接続した状態で行ってください。作業前にモデル名を確認し、必ず対応するBIOSファイルのみを使用してください。</div>
+      </div>
+
+      <div class="brand-tabs">
+        <div class="brand-tab active" data-brand="asus">ASUS</div>
+        <div class="brand-tab" data-brand="asrock">ASRock</div>
+        <div class="brand-tab" data-brand="gigabyte">GIGABYTE</div>
+        <div class="brand-tab" data-brand="lenovo">レノボ</div>
+        <div class="brand-tab" data-brand="msi">MSI</div>
+      </div>
+
+      <!-- ASUS -->
+      <div class="brand-panel active" id="brand-asus">
+        <h2 class="section-title">ASUS（EZ Flash）での手順</h2>
+        <ol>
+          <li>公式サイトからマザーボードの型番に合ったBIOSファイルをダウンロードし、USBメモリのルート直下に配置します。</li>
+          <li>起動時に <span class="inline-code">Del</span> キー（または <span class="inline-code">F2</span>）を押してBIOS(UEFI)画面に入ります。</li>
+          <li>「Advanced Mode」に切り替え、上部メニューの「Tool」から「ASUS EZ Flash」を選択します。</li>
+          <li>接続したUSBメモリを選択し、対象のBIOSファイルを選びます。</li>
+          <li>内容を確認し「Yes」を選択して更新を開始します。完了まで電源を切らずに待ちます。</li>
+          <li>更新完了後、自動的に再起動します。</li>
+        </ol>
+        <a class="video-link" href="https://youtu.be/Em7SRaG3L_0?si=pzdHZjNo_Fu0bAI" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          参考動画（ASUS）を見る
+        </a>
+      </div>
+
+      <!-- ASRock -->
+      <div class="brand-panel" id="brand-asrock">
+        <h2 class="section-title">ASRock（Instant Flash）での手順</h2>
+        <ol>
+          <li>公式サイトからBIOSファイルをダウンロードし、USBメモリのルート直下に配置します（解凍不要な場合が多いです）。</li>
+          <li>起動時に <span class="inline-code">F6</span> キー（または <span class="inline-code">Del</span> / <span class="inline-code">F2</span> でBIOS画面に入ってから選択）で「Instant Flash」を起動します。</li>
+          <li>USBメモリ内のBIOSファイルを一覧から選択します。</li>
+          <li>更新内容（バージョン等）を確認し、実行を選択します。</li>
+          <li>更新完了後、自動的に再起動します。</li>
+        </ol>
+        <a class="video-link" href="https://youtu.be/dUCWRqOdLUw?si=1kA5ER1vzcgV3Npg" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          参考動画（ASRock）を見る
+        </a>
+      </div>
+
+      <!-- GIGABYTE -->
+      <div class="brand-panel" id="brand-gigabyte">
+        <h2 class="section-title">GIGABYTE（Q-Flash / Q-Flash Plus）での手順</h2>
+        <ol>
+          <li>公式サイトからBIOSファイルをダウンロードし、USBメモリのルート直下に配置します（Q-Flash Plusを使う場合は指定のファイル名に変更）。</li>
+          <li>起動時に <span class="inline-code">End</span> キーでQ-Flashを起動します（Q-Flash Plus対応機種は電源OFFの状態からでも実行可能です）。</li>
+          <li>「Update BIOS from Drive」を選択し、USBメモリを選びます。</li>
+          <li>対象のBIOSファイルを選択し、更新を開始します。</li>
+          <li>更新完了後、自動的に再起動します。</li>
+        </ol>
+        <a class="video-link" href="https://youtu.be/DIIde3s02kM?si=uojxszXk1YHz79sQ" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          参考動画（GIGABYTE）を見る
+        </a>
+      </div>
+
+      <!-- Lenovo -->
+      <div class="brand-panel" id="brand-lenovo">
+        <h2 class="section-title">レノボ（BIOS Update Utility）での手順</h2>
+        <ol>
+          <li>Lenovo Vantageまたは公式サポートサイトから、機種に対応したBIOSアップデートファイル(.exe)をダウンロードします。</li>
+          <li>Windows上でファイルを実行し、ウィザードの指示に従って更新を開始します。</li>
+          <li>更新中に自動的に再起動し、BIOS更新処理が実行されます。完了まで電源を切らないでください。</li>
+          <li>ノートPCの場合は、ACアダプタを接続した状態で行ってください。</li>
+          <li>Windows上で実行できない場合は、Novoボタン（電源ボタン付近の小さな穴）から起動メニューに入り、USBメモリ経由でアップデートする方法もあります。</li>
+        </ol>
+        <a class="video-link" href="https://youtu.be/AwOax1uWgYc?si=p0GFrReez2Ttk0UV" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          参考動画（レノボ）を見る
+        </a>
+      </div>
+
+      <!-- MSI -->
+      <div class="brand-panel" id="brand-msi">
+        <h2 class="section-title">MSI（M-Flash）での手順</h2>
+        <ol>
+          <li>公式サイトからBIOSファイルをダウンロードし、FAT32でフォーマットしたUSBメモリのルート直下に配置します。</li>
+          <li>起動時に <span class="inline-code">Del</span> キーでBIOS画面に入り、「M-Flash」を選択します。</li>
+          <li>確認画面で「Yes」を選ぶとシステムが再起動し、Flash専用モードに入ります。</li>
+          <li>USBメモリと対象のBIOSファイルを選択し、更新を開始します。</li>
+          <li>更新完了後、自動的に再起動します。</li>
+        </ol>
+        <a class="video-link" href="https://youtu.be/sKMub20CUNI?si=EBQyE2A7o3VdToSG" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          参考動画（MSI）を見る
+        </a>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="win-reinstall-overview"><span class="pn-label">前へ</span><span class="pn-name">← Windows再インストール</span></a>
+        <a class="pn-link" data-goto="normal-reinstall" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">通常の再インストール →</span></a>
+      </div>
+    </section>
+
+    <!-- 通常の再インストール -->
+    <section class="doc-page" id="page-normal-reinstall">
+      <div class="eyebrow">Docs / Windows再インストール</div>
+      <h1 class="page-title">通常の再インストール</h1>
+      <p class="page-lead">一般的な環境向けのWindows再インストール手順です。RAID構成を利用していない場合はこちらをご参照ください。</p>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div><strong>USBメモリを使用してWindowsを再インストールすることを強くお勧めします。</strong><br>このプロセスは最大15分で完了します。</div>
+      </div>
+
+      <h2 class="section-title">事前準備</h2>
+      <ul>
+        <li>重要なデータのバックアップ</li>
+        <li>インストールメディア(USB)の用意</li>
+        <li>ライセンスキーの控え</li>
+      </ul>
+
+      <h2 class="section-title">USBメモリを使ってWindowsを再インストールする</h2>
+      <a class="video-link" href="https://www.microsoft.com/en-us/software-download/windows10" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        Windows 10をダウンロード
+      </a>
+      <ol style="margin-top:16px;">
+        <li>上記のメディア作成ツールをダウンロードするには、「今すぐダウンロード」をクリックしてください。</li>
+        <li>メディア作成ツールを管理者として開きます</li>
+        <li>「インストールメディアの作成（USBフラッシュドライブ）」を選択してください。</li>
+      </ol>
+      <img src="image/media1.png" alt="メディア作成ツール" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+      <p>推奨されているオプションをすべて使用して続行し、処理が完了するまでお待ちください。</p>
+
+      <p>現在、USBメモリの内容は以下のようになっています。</p>
+      <img src="image/usb1.png" alt="USBメモリの中身" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <p>SHIFTキーを押しながら「再起動」をクリックし、そのままSHIFTキーを押し続けてください。</p>
+      <img src="image/shift.png" alt="SHIFTキーを押しながら再起動" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <p>「デバイスを使用する」を選択し、USB（「フラッシュドライブ」とも呼ばれます）を選択します。</p>
+      <img src="image/dvs.png" alt="デバイス選択画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <p>Windows 10 Pro を選択してください（重要！）</p>
+      <img src="image/pro.png" alt="Windows 10 Pro選択画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <p>「プロダクトキーを持っていません」を選択してください（これは問題ありません）。</p>
+      <img src="image/productkey.png" alt="プロダクトキー入力画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <p>カスタム：Windowsのみインストール（詳細設定）を選択してください</p>
+      <img src="image/custom.png" alt="インストールの種類選択画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <h2 class="section-title">ディスクバイパス手順！</h2>
+      <ol>
+        <li>SHIFTキーとF10キーを同時に押してください（コマンドプロンプトが表示されます）。</li>
+        <li>次に <span class="inline-code">diskpart</span> をCMDに書き込む</li>
+        <li>次に、<span class="inline-code">list disk</span> をCMDに入力してすべてのドライブを表示します。</li>
+        <li><span class="inline-code">select disk 'X'</span>（X = ディスク番号）と入力し <span class="inline-code">clean</span>、USB以外のすべてのディスクに対して書き込みます。</li>
+      </ol>
+      <p>例えば、ほとんどの人はディスクを1つしか持っていません。その場合は、「select disk 1」と入力し、「clean」と入力します。ドライブが2つある場合は、「select disk 2」と入力し、「clean」と入力します。すべてのディスクに対して同様の手順を繰り返します。</p>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div>フラッシュドライブ（USB）は通常、内蔵ハードドライブやSSDに比べてサイズが小さく、おそらくリストの一番最後に記載されています。<strong>フラッシュドライブ（USB）をクリーニングしないでください。</strong>ご不明な点がある場合は、サポートチケットを開いてください。</div>
+      </div>
+
+      <p>これで「ディスクのクリーンアップに成功しました」または「成功」に関連する何らかのメッセージが出力されるはずです。</p>
+      <img src="image/diskpart.png" alt="diskpart実行画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <p>コマンドプロンプトを閉じて「更新」をクリックしてください。以下のようになっていることを確認してください。</p>
+      <img src="image/refresh.png" alt="ドライブ更新画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <ol>
+        <li>メインドライブ（未割り当て領域）を選択し、「次へ」をクリックします。</li>
+        <li>インストールプロセスが開始されますので、オフラインアカウントを作成してください！</li>
+      </ol>
+      <img src="image/acc.png" alt="オフラインアカウント作成画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <p>プライバシーに関する質問や設定をすべてオフにする</p>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div>
+          <strong>重要：</strong> 再インストール中および再インストール後には、必ず以下の手順に従ってください。
+          <ul style="margin:8px 0 0;">
+            <li>オフラインアカウントまたは新しいMicrosoftアカウントを作成してください。古いアカウントにはログインしないでください。</li>
+            <li>OneDrive、GeForce Experience、またはLogitech G Hubにログインしないでください。</li>
+            <li>エラーを防ぐために、<a href="https://aka.ms/vs/17/release/vc_redist.x64.exe" target="_blank" rel="noopener noreferrer">vc_redist.x64.exe</a>をインストールしてください。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="bios-flash-va"><span class="pn-label">前へ</span><span class="pn-name">← BIOS FLASH (VA)</span></a>
+        <a class="pn-link" data-goto="raid-reinstall-amd" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">RAID再インストール(AMD) →</span></a>
+      </div>
+    </section>
+
+    <!-- RAID (AMD) -->
+    <section class="doc-page" id="page-raid-reinstall-amd">
+      <div class="eyebrow">Docs / Windows再インストール</div>
+      <h1 class="page-title">RAID再インストール(AMD)</h1>
+      <p class="page-lead">AMDチップセットでRAID構成を利用している環境向けの再インストール手順です。</p>
+
+      <div class="faq">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>なぜこれが強く推奨されるのですか？</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>この再インストールは、これは重要であり、ほぼ99%の確率で成功します。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title">要件</h2>
+      <ul>
+        <li>8GBのストレージ容量を持つUSBメモリ（最大32GBまで対応）</li>
+        <li>コンピュータの一般的な操作方法を十分に理解している</li>
+      </ul>
+
+      <h2 class="section-title">1 | Windowsインストール</h2>
+      <a class="video-link" href="https://www.microsoft.com/en-us/software-download/windows10" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        Windows 10 ダウンロードページを開く
+      </a>
+
+      <p style="margin-top:24px;"><strong style="color:var(--text);">Windows USBを作成する</strong></p>
+      <p>メディア作成ツールをダウンロードして管理者として実行し、「インストールメディア（USBフラッシュドライブ）の作成」を選択します。推奨されるオプションをすべて選択して続行し、しばらくお待ちください。</p>
+      <img src="image/install1.png" alt="Windows USB作成画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <h2 class="section-title">2 | AMD RAIDファイルをUSBに追加する</h2>
+      <a class="video-link" href="https://mega.nz/file/ETNnBAzL#V9EeHiDXgxheWvB0eukhIHpYpsQq57-oSYvaEWAna9g" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        RAIDファイルをダウンロード
+      </a>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div><strong>現在の状況を確認してください！</strong><br>携帯で写真を撮ってください</div>
+      </div>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div><strong>ディスクのシリアル番号を覚えておいてください！</strong><br>携帯電話で写真を撮り、Disk serial checker.exeで確認してください。</div>
+      </div>
+
+      <p>お使いのUSBポートは、以下のような形状をしているはずです（チップセットによってAM4またはAM5のいずれかになります）。</p>
+      <img src="image/imag2.png" alt="USBポートの形状" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <h2 class="section-title">ネットワークドライバー</h2>
+      <p>Windowsを再インストールする際、ほとんどの最新システムは基本的なイーサネットドライバを自動的に検出してインストールします。ただし、場合によってはネットワークドライバを手動でダウンロードしてインストールする必要があるかもしれません。ネットワークドライバ（LAN）は、お使いのマザーボードのモデルに対応したものをダウンロードしてください。例えば、Googleで「Asus B550 ネットワークドライバ」と検索し、念のためUSBドライブに保存しておくと、あらゆるリスクを排除できます。</p>
+
+      <p>完了したら、USBメモリが上記のスクリーンショットのようになったら、コンピュータを再起動し、BIOSを起動してください。</p>
+      <p>BIOSを起動する方法（<a href="https://www.youtube.com/watch?si=ZHwFa0l6Tddw7Gay&t=60&v=mb9X9_NNxuo&feature=youtu.be" target="_blank" rel="noopener noreferrer">動画</a>）</p>
+
+      <h2 class="section-title">4 | BIOSでRAIDモードを有効にする</h2>
+      <p>BIOSに入ったら、以下の手順に従ってください。</p>
+      <ol>
+        <li>Advanced &gt; Integrated Peripherals (or) Storage Configurations</li>
+        <li>SATA Mode set to &gt; "RAID" / NVME Mode set to &gt; "RAID"</li>
+        <li>Save &amp; Exit BIOS — get back into BIOS again after　コマンドラインで</li>
+      </ol>
+
+      <h2 class="section-title">5 | RAID設定ビデオ</h2>
+      <a class="video-link" href="https://streamable.com/9o2zci" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        BIOS画面に戻ったら、こちらのRAID設定ビデオをご覧ください
+      </a>
+
+      <h2 class="section-title">6 | オフラインアカウントを作成する</h2>
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div><strong>Windows 11 & 10ユーザー</strong><br>Windows 11では、通常のセットアップ方法ではオフラインアカウントを作成できなくなりました。新しいMicrosoftアカウントを作成するか、YouTubeで「Windows 11 最新オフラインアカウント作成方法」を検索して、現在の回避策を探してください。回避策の一つとして、その手順に進んだらインターネット接続を切断する方法があります。</div>
+      </div>
+
+      <h2 class="section-title">7 | プライバシー設定をオフにする</h2>
+      <p>プライバシーに関する質問や設定をすべてオフにしてください。</p>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="normal-reinstall"><span class="pn-label">前へ</span><span class="pn-name">← 通常の再インストール</span></a>
+        <a class="pn-link" data-goto="raid-reinstall-intel" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">RAID再インストール(INTEL) →</span></a>
+      </div>
+    </section>
+
+    <!-- RAID (INTEL) -->
+    <section class="doc-page" id="page-raid-reinstall-intel">
+      <div class="eyebrow">Docs / Windows再インストール</div>
+      <h1 class="page-title">RAID再インストール(INTEL)</h1>
+      <p class="page-lead">INTEL専用のチュートリアルです。Intelチップセットの RST (Rapid Storage Technology) でRAID構成を利用している環境向けの再インストール手順です。</p>
+
+      <div class="faq">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>なぜこれが強く推奨されるのですか？</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>この再インストール方法を強くお勧めします！AMDの場合と同様、これは重要であり、ほぼ99%の確率で成功します。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title">要件</h2>
+      <ul>
+        <li>8GBのストレージ容量を持つUSBメモリ（最大32GBまで対応）</li>
+        <li>コンピュータの一般的な操作方法を十分に理解している</li>
+        <li>Intel RST対応マザーボード（互換性チェッカーで確認済み）</li>
+      </ul>
+
+      <h2 class="section-title">Intel RAIDとの互換性</h2>
+      <div class="callout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        <div>互換性をまだ確認していませんか？Intel RAID互換性チェッカーを実行して、システムがRAIDをサポートしているかどうかを確認してください。RAIDをサポートしていない場合は、通常の手順で再インストールしてください。</div>
+      </div>
+      <a class="video-link" href="https://mega.nz/file/PApiUbrC#OaBTTF9pJj08XoNhHYr9hY2kNj5Htasya5gECy2MWCU" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        Intel RAID互換性チェッカーをダウンロード
+      </a>
+
+      <h2 class="section-title">1 | WINDOWS USBを作成する</h2>
+      <a class="video-link" href="https://www.microsoft.com/en-us/software-download/windows10" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        Windows 10をダウンロード
+      </a>
+      <ul style="margin-top:16px;">
+        <li>上記のメディア作成ツールをダウンロードするには、「今すぐダウンロード」をクリックしてください。</li>
+        <li>メディア作成ツールを管理者として開きます</li>
+        <li>「インストールメディアの作成（USBフラッシュドライブ）」を選択してください。</li>
+        <li>推奨されているオプションをすべて使用して続行し、処理が完了するまでお待ちください。</li>
+      </ul>
+      <img src="image/install1.png" alt="Windows USB作成画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <h2 class="section-title">2 | INTEL RAIDファイル</h2>
+      <a class="video-link" href="https://streamable.com/viekog" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        ドライバーのダウンロード ガイドをご覧ください
+      </a>
+
+      <div class="callout" style="margin-top:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        <div>テスト</div>
+      </div>
+
+      <p>コンピュータを再起動し、BIOSに入ります（<a href="https://youtu.be/mb9X9_NNxuo?si=ZHwFa0l6Tddw7Gay&t=60" target="_blank" rel="noopener noreferrer">BIOSへの簡単な起動方法を参照</a>）。アドバンストモードに移動し、SATA/NVMeストレージ構成設定を探します。</p>
+
+      <div class="callout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        <div>
+          <strong>🔍 SATAモードとM.2 RAIDサポートの確認</strong>
+          <p style="margin:8px 0;">場所はマザーボードによって異なります。以下の一般的なパスを確認してください。</p>
+          <ul style="margin:0 0 8px;">
+            <li>詳細モード &gt; PCHストレージ構成（最も一般的な構成）</li>
+            <li>詳細モード &gt; ストレージ構成</li>
+            <li>詳細モード &gt; SA (システムエージェント) &gt; VMD コントローラー</li>
+            <li>詳細モード &gt; オンボードデバイス/統合周辺機器</li>
+            <li>詳細モード &gt; VMDコントローラー</li>
+          </ul>
+          <p style="margin:0;">ストレージ設定を見つけたら、以下のオプションを設定してください。</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        <div>
+          <strong>💡 VMDコントローラーが見つかりましたか？</strong>
+          <p style="margin:8px 0 0;">「VMDコントローラー」オプションが表示された場合は、それを有効にして、以下のSATAモード設定はスキップしてください。</p>
+        </div>
+      </div>
+
+      <ul>
+        <li><strong>A</strong> | SATAモード/コントローラー &gt; RAIDモード/RST制御/Optaneモード</li>
+        <li><strong>B</strong> | M.2_1 RST PCIEストレージRAIDサポート &gt; 有効 / RST制御</li>
+        <li><strong>C</strong> | M.2_2 RST PCIEストレージRAIDサポート &gt; 有効 / RST制御</li>
+      </ul>
+      <p>マザーボードによっては名称が異なる場合がありますので、常識的に判断してください。</p>
+
+      <p><strong style="color:var(--text);">「ブート」タブに移動して設定します。</strong></p>
+      <ul>
+        <li>ブート &gt; CSM &gt; 無効</li>
+      </ul>
+      <p>CSMが見つからない場合は、代わりにUEFIが有効になっていることを確認してください。</p>
+      <p>BIOSを保存して終了し、再度BIOSに入ってください！</p>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div>
+          <strong>重要：</strong> 再インストール中および再インストール後には、必ず以下の手順に従ってください。
+          <ul style="margin:8px 0 0;">
+            <li>オフラインアカウントを作成するか、新しいMicrosoftアカウントを作成してください。古いアカウントにはログインしないでください。</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 class="section-title">3 | Intel RSTでRAIDボリュームを作成する</h2>
+      <p>BIOSに戻ったら、<span class="inline-code">Advanced</span> &gt; <span class="inline-code">Intel(R) RST</span> &gt; <span class="inline-code">Create RAID Volume</span> の順に移動してください。</p>
+      <ol>
+        <li>名前 &gt; お好きなものをお選びください</li>
+        <li>RAIDレベル &gt; RAID0（ストライプ）</li>
+        <li>ディスクを選択 &gt; RAIDを構成するディスクを選択してください（異なる種類のディスクを混在させることはできません）</li>
+        <li>ボリュームの作成 &gt; クリックしてアレイを作成します</li>
+      </ol>
+      <p>BIOSを保存して終了し、Windows USBが接続されていることを確認してください。Windowsセットアップ画面が表示されるはずです。</p>
+      <img src="image/install2.png" alt="Windowsセットアップ画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <h2 class="section-title">4 | Windowsのインストール</h2>
+      <ol>
+        <li>必要に応じて言語設定を変更し、「次へ」を押してください。</li>
+        <li>プロダクトキーを求められた場合は、「プロダクトキーを持っていません」を選択してください。</li>
+        <li>Windows 10/11 Pro バージョンを選択してください <strong style="color:var(--accent);">| 重要</strong></li>
+        <li>利用規約に同意して「次へ」を押してください</li>
+      </ol>
+      <p>「Windows をどこにインストールしますか？」のステップで、「ドライバーの読み込み」をクリックします。</p>
+      <img src="image/install3.png" alt="ドライバーの読み込み画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+      <ol>
+        <li>ポップアップで「参照」をクリックします。</li>
+        <li>USBメモリの場所へ移動してください。</li>
+        <li>Intel RSTドライバーが入っているフォルダーを選択し、「OK」をクリックします。</li>
+      </ol>
+      <p>Ctrl + Aを押してすべてのドライバーを選択し、次に「次へ」をクリックします。</p>
+      <img src="image/install4.png" alt="ドライバー選択画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+      <p>Windowsをインストールするディスクを選択し、「次へ」をクリックしてください。インストールプロセスを続行してください。インストールプロセスが開始されます。オフラインアカウントを作成してください。</p>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div><strong>Windows 11ユーザー</strong><br>Windows 11では、通常のセットアップ方法ではオフラインアカウントを作成できなくなりました。新しいMicrosoftアカウントを作成するか、YouTubeで「Windows 11 最新オフラインアカウント作成方法」を検索して、現在の回避策を探してください。回避策の一つとして、その手順に進んだらインターネット接続を切断する方法があります。</div>
+      </div>
+
+      <h2 class="section-title">5 | プライバシー設定を無効にする</h2>
+      <p>プライバシーに関する質問や設定をすべてオフにしてください。</p>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="raid-reinstall-amd"><span class="pn-label">前へ</span><span class="pn-name">← RAID再インストール(AMD)</span></a>
+        <a class="pn-link" data-goto="bios-settings" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">BIOS 設定 →</span></a>
+      </div>
+    </section>
+
+    <!-- BIOS 設定 -->
+    <section class="doc-page" id="page-bios-settings">
+      <div class="eyebrow">Docs</div>
+      <h1 class="page-title">BIOS 設定</h1>
+      <p class="page-lead">推奨されるBIOS設定項目です。設定変更前に現在の値をメモしておくことをおすすめします。</p>
+
+      <h2 class="section-title">BIOSでTPMを無効にする</h2>
+      <p>BIOS設定画面を開き、以下の手順に従ってください。</p>
+      <a class="video-link" href="https://youtu.be/mb9X9_NNxuo?si=ZHwFa0l6Tddw7Gay&t=60" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        BIOSに簡単に起動する方法
+      </a>
+
+      <div class="callout warn" style="margin-top:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div>BIOSでTPMを無効にしてください（完了後に有効にできます）。</div>
+      </div>
+
+      <p style="margin-top:20px;">トラステッドコンピューティングモジュール(TPM)を無効にする：メーカーごとの手順は下のタブからご確認ください。</p>
+
+      <div class="brand-tabs">
+        <div class="brand-tab active" data-brand="tpm-asus">ASUS</div>
+        <div class="brand-tab" data-brand="tpm-msi">MSI</div>
+        <div class="brand-tab" data-brand="tpm-asrock">ASRock</div>
+        <div class="brand-tab" data-brand="tpm-gigabyte">GIGABYTE/AORUS</div>
+        <div class="brand-tab" data-brand="tpm-other">その他</div>
+      </div>
+
+      <div class="brand-panel active" id="brand-tpm-asus">
+        <h2 class="section-title">ASUS TPM無効化</h2>
+        <p>Intel：00:00、AMD：01:20</p>
+        <a class="video-link" href="https://streamable.com/sicp16" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          この簡単なチュートリアルビデオをご覧ください
+        </a>
+      </div>
+
+      <div class="brand-panel" id="brand-tpm-msi">
+        <h2 class="section-title">MSI TPM無効化</h2>
+        <p>Intel：00:00、AMD：01:05</p>
+        <a class="video-link" href="https://streamable.com/n7q3dk" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          この簡単なチュートリアルビデオをご覧ください
+        </a>
+      </div>
+
+      <div class="brand-panel" id="brand-tpm-asrock">
+        <h2 class="section-title">ASRock TPM無効化</h2>
+        <p>Intel：00:00、AMD：01:35</p>
+        <a class="video-link" href="https://streamable.com/ec8u3s" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          この簡単なチュートリアルビデオをご覧ください
+        </a>
+      </div>
+
+      <div class="brand-panel" id="brand-tpm-gigabyte">
+        <h2 class="section-title">GIGABYTE/AORUS TPM無効化</h2>
+        <p>Intel：00:00、AMD：01:50</p>
+        <a class="video-link" href="https://streamable.com/1qhn35" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          この簡単なチュートリアルビデオをご覧ください
+        </a>
+      </div>
+
+      <div class="brand-panel" id="brand-tpm-other">
+        <h2 class="section-title">その他のマザーボード</h2>
+        <p>お使いのマザーボードに対応したTPM無効化方法を解説したYouTube動画を探してみてください。</p>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="raid-reinstall-intel"><span class="pn-label">前へ</span><span class="pn-name">← RAID再インストール(INTEL)</span></a>
+        <a class="pn-link" data-goto="windows-defender" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">Windows defender →</span></a>
+      </div>
+    </section>
+
+    <!-- Windows defender -->
+    <section class="doc-page" id="page-windows-defender">
+      <div class="eyebrow">Docs</div>
+      <h1 class="page-title">Windows defender</h1>
+      <p class="page-lead">Windows Defenderに関する設定・確認事項をまとめています。</p>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div>設定変更はご自身の責任のもと行ってください。</div>
+      </div>
+
+      <h2 class="section-title">Windows Defenderを手動で無効にする</h2>
+      <ol>
+        <li>「スタート」を選択し、「Windowsセキュリティ」と入力します。</li>
+        <li>検索結果からWindowsセキュリティアプリを選択し、「ウイルスと脅威の防止」に移動して、「ウイルスと脅威の防止の設定」の下にある「設定の管理」を選択します。</li>
+        <li>リアルタイム保護をオフにする</li>
+      </ol>
+
+      <h2 class="section-title">dControlを使用してWindows Defenderを無効にする</h2>
+      <a class="video-link" href="https://mega.nz/file/N4ZwnTzI#UBIbpnRRDSp9mrEKA5RC1v2eyV410Dwj2dGr9Usb1rA" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        dControlをダウンロード（447.5KB）
+      </a>
+      <ol style="margin-top:16px;">
+        <li>dControlをダウンロードしてください（上記参照）</li>
+        <li>ファイルを解凍する</li>
+        <li>dControl.exeを実行します。</li>
+        <li>Windows Defenderを無効にする</li>
+      </ol>
+      <img src="image/dc.png" alt="dControl実行画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="bios-settings"><span class="pn-label">前へ</span><span class="pn-name">← BIOS 設定</span></a>
+        <a class="pn-link" data-goto="important-notes" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">重要注意事項 →</span></a>
+      </div>
+    </section>
+
+    <!-- 重要注意事項 -->
+    <section class="doc-page" id="page-important-notes">
+      <div class="eyebrow">Docs</div>
+      <h1 class="page-title">重要注意事項</h1>
+      <p class="page-lead">ご利用前に必ずお読みください。</p>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div>作業前のバックアップを推奨します。手順に沿わない操作は動作不良の原因になる場合があります。</div>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="windows-defender"><span class="pn-label">前へ</span><span class="pn-name">← Windows defender</span></a>
+        <a class="pn-link" data-goto="windows-settings" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">Windows設定 →</span></a>
+      </div>
+    </section>
+
+    <!-- Windows設定 -->
+    <section class="doc-page" id="page-windows-settings">
+      <div class="eyebrow">Docs / 設定</div>
+      <h1 class="page-title">Windows設定</h1>
+      <p class="page-lead">Windows環境で確認・調整しておきたい設定項目をまとめています。</p>
+
+      <h2 class="section-title">確認すべき項目</h2>
+      <ul>
+        <li>電源オプション(スリープ/高速スタートアップ)</li>
+        <li>Windows Update の設定</li>
+        <li>ユーザーアカウント制御(UAC)</li>
+        <li>プライバシー設定</li>
+      </ul>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="important-notes"><span class="pn-label">前へ</span><span class="pn-name">← 重要注意事項</span></a>
+        <a class="pn-link" data-goto="tools-2c-b2" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">ダウンロード →</span></a>
+      </div>
+    </section>
+
+    <!-- 2C / B2 Tools -->
+    <section class="doc-page" id="page-tools-2c-b2">
+      <div class="eyebrow">Docs / ファイル</div>
+      <h1 class="page-title">ダウンロード</h1>
+      <p class="page-lead">2C / B2 関連ツールのセットアップ手順です。</p>
+
+      <h2 class="section-title">ステップ1：WinRARをインストールする</h2>
+      <ol>
+        <li>WinRARは以下のリンクからダウンロードできます：<a href="https://www.win-rar.com/fileadmin/winrar-versions/winrar/winrar-x64-701.exe" target="_blank" rel="noopener noreferrer">WinRARダウンロード</a></li>
+        <li>ダウンロード後、ファイルを開いて画面の指示に従ってください。</li>
+        <li>「OK」をクリックしてインストールを完了してください。</li>
+      </ol>
+
+      <h2 class="section-title">ステップ2：ローダーをダウンロードする</h2>
+      <a class="video-link" href="https://tinyurl.com/54fyywtw" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        ダウンロード（更新日：2026年7月11日 | v4.9.0）
+      </a>
+      <ol style="margin-top:16px;">
+        <li>バックグラウンドで実行されているすべてのアプリケーションとウイルス対策ソフトを閉じてください。</li>
+        <li>Edgeをデフォルトブラウザとして使用していないことを確認してください。</li>
+        <li>ローダーを管理者として実行してください。</li>
+      </ol>
+
+      <div class="faq">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>ローダーを開く際にクラッシュしますか？</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <ol style="margin:0;">
+                <li>GPU ドライバー (AMD/NVIDIA) がインストールされていることを確認し、GEFORCE で新しいアカウントを作成してください。</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="windows-settings"><span class="pn-label">前へ</span><span class="pn-name">← Windows設定</span></a>
+        <a class="pn-link" data-goto="network" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">起動 →</span></a>
+      </div>
+    </section>
+
+    <!-- 起動 -->
+    <section class="doc-page" id="page-network">
+      <div class="eyebrow">Docs / ファイル</div>
+      <h1 class="page-title">起動</h1>
+      <p class="page-lead">起動方法についてのページです。お使いのPCに合わせてタブをお選びください。</p>
+
+      <div class="brand-tabs">
+        <div class="brand-tab active" data-brand="boot-normal">通常</div>
+        <div class="brand-tab" data-brand="boot-hp">HP</div>
+        <div class="brand-tab" data-brand="boot-asus">ASUS</div>
+      </div>
+
+      <div class="brand-panel active" id="brand-boot-normal">
+        <div class="callout warn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+          <div>パソコンに接続されているUSB機器はすべて取り外してください！</div>
+        </div>
+
+        <a class="video-link" href="https://www.youtube.com/watch?v=cjD0ax0Ffyk" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          動画を見る
+        </a>
+
+        <ol style="margin-top:16px;">
+          <li>downloadしたファイルをWinRARで展開してください</li>
+          <li>ファイル内にあるBrave.exeを管理者実行</li>
+          <li>ライセンスキーを入力します
+            <img src="image/license.png" alt="ライセンスキー入力画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+          </li>
+          <li>ログイン後、Device Infoにあるものをスクリーンショットしてください
+            <img src="image/sral.png" alt="Device Info画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+          </li>
+          <li>TESTタブに戻り、PERMANENT SP00Fを押します。
+            <img src="image/board.png" alt="PERMANENT SP00Fボタン" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+          </li>
+          <li>使用しているマザーボードを選択してください。完了したらPCを再起動します。</li>
+          <li>再度ファイルを開く</li>
+          <li>PERMANENT MACを押します</li>
+          <li>再度Device Infoを開き、すべて緑色になっているかを確認してください。</li>
+        </ol>
+
+        <div class="callout warn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+          <div>赤色の部分がある場合は失敗しています。サポートに連絡して確認してください。</div>
+        </div>
+      </div>
+
+      <div class="brand-panel" id="brand-boot-hp">
+        <h2 class="section-title">初めに</h2>
+        <ol>
+          <li>USBメモリをコンピュータに接続してください（容量は32GB以下である必要があります）。</li>
+          <li>WindowsエクスプローラーでUSBドライブを右クリックし、「フォーマット」をクリックします。</li>
+          <li>ファイルシステムを「FAT32」に変更し、開始をクリックして待ちます。</li>
+        </ol>
+
+        <h2 class="section-title">ロック解除設定</h2>
+        <p>このファイルをダウンロードして解凍し、USBメモリに保存してください。</p>
+        <a class="video-link" href="https://605324365-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2F4LCMEzbOr1bRsZ606sPz%2Fuploads%2FprziyTydSkkEGtykOi75%2FHP%20FILES.rar?alt=media&token=0723de59-afb9-4f31-89b4-592d6e3a688d" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+          HP FILES.rar をダウンロード
+        </a>
+
+        <p style="margin-top:16px;">USBメモリはこんな感じになっているはずです</p>
+        <img src="image/usb-hp.png" alt="USBメモリの中身" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+        <p>パソコンを再起動してBIOSに入ってください。HPの場合は<span class="inline-code">F9</span>キーです。再起動中にF9キーを何度も押してください。</p>
+
+        <ol>
+          <li>以下のような画面が表示されるはずです（表示内容は異なる場合があります）。</li>
+          <li>「EFIからファイルを読み込む」を選択してください。</li>
+        </ol>
+        <img src="image/bios2.png" alt="BIOS起動デバイス選択画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+        <p>次にUSBを選択してください</p>
+        <img src="image/bios4.png" alt="USB選択画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+        <p>次に「bootx64.efi」を選択してください。</p>
+        <img src="image/bios5.png" alt="EFIファイル選択画面1" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+        <img src="image/bios6.png" alt="EFIファイル選択画面2" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+        <p>すると、このような画面が表示されますので、「はい」を押してください。</p>
+
+        <p>これでWindowsが再び起動しますので、USBメモリを取り外してください。Windowsが起動しない場合は、USBメモリを取り外してしばらくお待ちください。</p>
+
+        <div class="faq">
+          <div class="faq-item">
+            <div class="faq-question">
+              <span>手順を見るにはクリック</span>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="faq-answer">
+              <div class="faq-answer-inner">
+                <p>てｓｔ</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="brand-panel" id="brand-boot-asus">
+        <div class="callout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+          <div>このページの内容は準備中です。</div>
+        </div>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="tools-2c-b2"><span class="pn-label">前へ</span><span class="pn-name">← ダウンロード</span></a>
+        <a class="pn-link" data-goto="new-item" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">インターネット →</span></a>
+      </div>
+    </section>
+
+    <!-- インターネット -->
+    <section class="doc-page" id="page-new-item">
+      <div class="eyebrow">Docs / ファイル</div>
+      <h1 class="page-title">インターネット</h1>
+      <p class="page-lead">ネットワークアダプターの設定手順です。</p>
+
+      <h2 class="section-title">イーサネット以外を無効にする</h2>
+      <p>Windowsキー + Rキーを同時に押し、<span class="inline-code">ncpa.cpl</span>と入力して「OK」をクリックします。（これで、イーサネット以外のすべてを無効にします。）</p>
+      <ol>
+        <li>使用している接続を右クリックし、「プロパティ」をクリックします。</li>
+        <li>設定を以下のように変更してください。</li>
+      </ol>
+      <img src="image/net.png" alt="ネットワーク接続設定画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <h2 class="section-title">ネットワークアダプターの詳細設定</h2>
+      <ol>
+        <li>Windowsキー + Rキーを押し、<span class="inline-code">devmgmt.msc</span>と入力して「OK」をクリックします。（次に、ネットワークアダプターの矢印をクリックします。）</li>
+        <li>使用している接続を右クリックし、「プロパティ」をクリックします。</li>
+        <li>「詳細設定」タブに移動してください。</li>
+        <li>以下の設定を検索し、次のように設定してください（一部の設定が欠落している場合は、スキップしてください）。</li>
+      </ol>
+
+      <div class="callout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        <div>おそらくスプーファーのおかげで既に全て同じように設定されていると思いますが、念のため、同じ設定になっているか再度確認してください。</div>
+      </div>
+
+      <div class="code-block">Advanced EEE — Disabled
+Network Address — Not Present
+ARP Offload — Disabled
+Flow Control — Disabled
+IPv4 Checksum Offload — Disabled
+Large Send Offload v2 (IPv6) — Disabled
+TCP Checksum Offload (IPv6) — Disabled
+UDP Checksum Offload (IPv6) — Disabled</div>
+
+      <h2 class="section-title">必須手順：手動で行ってください</h2>
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div>管理者としてCMDを開き、以下のコマンドを1つずつ順番に入力してください。</div>
+      </div>
+      <div class="code-block">ipconfig /flushdns
+ipconfig /registerdns
+ipconfig /release
+ipconfig /renew
+netsh winsock reset</div>
+      <p>パソコンを再起動してください。</p>
+
+      <p>再度管理者としてCMDを開き、以下のコマンドを実行してください。</p>
+      <div class="code-block">arp -d
+netsh interface IP delete arpcache</div>
+      <p>パソコンを再起動してください。</p>
+
+      <div class="callout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        <div>ネットワークのフラグ解除は永続的に適用されないため、Windowsを再インストールすると再度設定する必要があります。</div>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="network"><span class="pn-label">前へ</span><span class="pn-name">← 起動</span></a>
+        <a class="pn-link" data-goto="extra-safety" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">追加の安全対策 →</span></a>
+      </div>
+    </section>
+
+    <!-- 追加の安全対策 -->
+    <section class="doc-page" id="page-extra-safety">
+      <div class="eyebrow">Docs / ファイル</div>
+      <h1 class="page-title">追加の安全対策</h1>
+      <p class="page-lead">作業時に取っておきたい追加の安全対策をまとめています。</p>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div>すべて完了したら、すべてのなりすましフォルダを削除してください。</div>
+      </div>
+
+      <h2 class="section-title">周辺機器の設定</h2>
+      <div class="video-embed">
+        <iframe src="https://streamable.com/e/p1j24a" allow="fullscreen" allowfullscreen></iframe>
+      </div>
+
+      <a class="video-link" href="https://mega.nz/file/1L0BXBLb#8OjAkDvw_GML9aDnKLynceE-Ga_x3XMV9V3qp1onhrk" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        🔻 ダウンロードリンクはこちら
+      </a>
+
+      <h2 class="section-title">非表示デバイスを無効にする</h2>
+      <img src="image/devs.png" alt="非表示デバイス表示画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <p>灰色になっているものをすべて削除してください。例えば、（このUSB DISK USB Deviceは灰色です）。ディスクだけでなく、すべての灰色のデバイスに対してこれを行ってください。</p>
+      <img src="image/devsss.png" alt="灰色デバイスの例1" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+      <img src="image/devsq.png" alt="灰色デバイスの例2" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="new-item"><span class="pn-label">前へ</span><span class="pn-name">← インターネット</span></a>
+        <a class="pn-link" data-goto="important-settings" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">VPNの使用 →</span></a>
+      </div>
+    </section>
+
+    <!-- VPNの使用 -->
+    <section class="doc-page" id="page-important-settings">
+      <div class="eyebrow">Docs / ファイル</div>
+      <h1 class="page-title">VPNの使用</h1>
+      <p class="page-lead">VPNの必要性とおすすめのVPNサービスについてまとめています。</p>
+
+      <div class="faq">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>VPNはなぜ必要なのか？</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Fortnite（1週間）、Rust（ルーターのリセットまたはIPアドレスの変更まで永続的に）、およびEFTなどのサーバー管理者がいるゲームではVPNが必要です。その他のEAC/BEゲームではVPNが必須ではない場合もありますが、最初の1週間はVPNを使用することをお勧めします。カジュアルな保護には、Windscribeが10GBの無料データを提供しており、これは十分な選択肢であり、ほとんどの場合1週間で十分です。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title">おすすめのVPN</h2>
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div><strong>NordVPN / ProtonVPNは使用しないでください。</strong>これらは機能しません。私たちがリストアップしているVPNのいずれかを使用する必要があります。</div>
+      </div>
+
+      <div class="brand-tabs">
+        <div class="brand-tab active" data-brand="vpn-windscribe">WINDSCRIBE</div>
+        <div class="brand-tab" data-brand="vpn-ipvanish">IPVANISH</div>
+      </div>
+
+      <div class="brand-panel active" id="brand-vpn-windscribe">
+        <ul>
+          <li>パケット損失が少ない</li>
+          <li>無料10GBトライアル</li>
+          <li><a href="https://windscribe.com/" target="_blank" rel="noopener noreferrer">https://windscribe.com/</a></li>
+        </ul>
+        <p>Windscribeを「ステルスモード」で使用し、ファイアウォールが「自動」に設定され、有効になっていることを確認してください。</p>
+      </div>
+
+      <div class="brand-panel" id="brand-vpn-ipvanish">
+        <p>スクランブル機能を有効にしたOpenVPNプロトコルとUDP接続タイプを使用してください。</p>
+        <img src="image/vanish.png" alt="IPVanish設定画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="extra-safety"><span class="pn-label">前へ</span><span class="pn-name">← 追加の安全対策</span></a>
+        <a class="pn-link" data-goto="finishing" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">仕上げ →</span></a>
+      </div>
+    </section>
+
+    <!-- 仕上げ -->
+    <section class="doc-page" id="page-finishing">
+      <div class="eyebrow">Docs</div>
+      <h1 class="page-title">仕上げ</h1>
+      <p class="page-lead">作業を完了する前の最終チェックリストです。すべての項目を確認してください。</p>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div>
+          <strong>最終チェックリスト</strong>
+          <ul style="margin:8px 0 0;">
+            <li>Windowsは、通常インストールまたはRAIDを使用して正しく再インストールする必要があります。</li>
+            <li>その他タブからWindowsアクティベーターを使用し、完了後にローダーとフォルダを必ず削除してください。</li>
+            <li>すべてのシリアル番号は緑色でなければなりません（デバイスタブの白色のシリアル番号を除く）。</li>
+            <li>Wi-FiとBluetoothは、使用しない場合は「利用不可/無効」に設定する必要があります。</li>
+            <li>ネットワークのフラグ解除手順は、すべてのアダプタで完了する必要があります。</li>
+            <li>イーサネットでは、永続的なMACスプーフィングが実行されている必要があります。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="important-settings"><span class="pn-label">前へ</span><span class="pn-name">← VPNの使用</span></a>
+        <a class="pn-link" data-goto="fn-tournament" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">FNトーナメント →</span></a>
+      </div>
+    </section>
+
+    <!-- FNトーナメント -->
+    <section class="doc-page" id="page-fn-tournament">
+      <div class="eyebrow">Docs</div>
+      <h1 class="page-title">FNトーナメント</h1>
+      <p class="page-lead">Fortniteトーナメント参加時のアカウント要件と、TPMまわりの対処法です。</p>
+
+      <h2 class="section-title">アカウント要件</h2>
+      <ul>
+        <li>トーナメントで過去に一度もキックされたことのないアカウントでなければなりません。</li>
+        <li>Freshアカウントを新規作成するか、既に作成済みのアカウントを使用してください。</li>
+      </ul>
+
+      <h2 class="section-title">ステップ1：まずPowerShellの回避策を試してください</h2>
+      <p>TPMが有効になっていて準備完了状態であれば（<span class="inline-code">tpm.msc</span>で確認）、PowerShellで以下のコマンドを実行してください。</p>
+      <div class="code-block">Disable-TpmAutoProvisioning
+Clear-Tpm
+shutdown /r /t 30
+# AFTER YOUR COMPUTER RESTART, CHECK IF FORTNITE WORKS</div>
+
+      <div class="faq">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>これはどういう仕組みですか？</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>この操作を実行すると（Clear-Tpm）、TPM シリアル番号が照会できなくなります。つまり、TPM は実質的に無効になりますが、Fortnite は有効になっていると認識します。そのため、この回避策が有効になります。これは、ほとんどのAMDユーザーで有効な、不具合のあるシステムです。この影響を受けている場合は、FortniteのTPMチェックがシステム上でバグっているためTPMシリアル番号を取得できないので、なりすましを試みても意味がありません。Fortniteがこの矛盾したチェックを修正しない限り、この問題は解決しません。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="finishing"><span class="pn-label">前へ</span><span class="pn-name">← 仕上げ</span></a>
+        <a class="pn-link" data-goto="caution-items" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">注意事項 →</span></a>
+      </div>
+    </section>
+
+    <!-- 注意事項 -->
+    <section class="doc-page" id="page-caution-items">
+      <div class="eyebrow">Docs / その他</div>
+      <h1 class="page-title">遅延禁止</h1>
+      <p class="page-lead">作業前後に注意すべき項目をまとめています。</p>
+
+      <div class="faq">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>なぜ一部のデバイスは遅延禁止を起こすのか？</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>残念ながら、人々が最も予想していなかった弱点が今、狙われています。コントローラーがBANの原因になるのでしょうか？はい、コントローラーを接続すると次の試合からBANされます。これは、マウス、ヘッドセット、コントローラーなどのデバイスが周辺機器であるためです。LowKeyはこれらのデバイスを偽装できますが、システムレベルでのみ可能で、シリアル番号を永久的に上書きすることはできません。詳細については、こちらの説明ページをご覧ください。🙌</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p style="margin-top:16px;">対象デバイス：</p>
+      <ul>
+        <li>ワイヤレスマウス（Bluetooth、USB）</li>
+        <li>ワイヤレスヘッドセット（Bluetooth、USB）</li>
+        <li>ワイヤレスキーボード（Bluetooth、USB）</li>
+        <li>ワイヤレスコントローラー（Bluetooth、USB）</li>
+      </ul>
+
+      <div class="callout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        <div><strong>検討すべき推奨事項：</strong> 可能な限り有線接続を使用するか、新しいワイヤレスマウス／ヘッドセット／コントローラーを購入してください。</div>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="fn-tournament"><span class="pn-label">前へ</span><span class="pn-name">← FNトーナメント</span></a>
+        <a class="pn-link" data-goto="mac-permanent" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">フルパーマネント MAC 変更なし →</span></a>
+      </div>
+    </section>
+
+    <!-- フルパーマネント MAC 変更なし -->
+    <section class="doc-page" id="page-mac-permanent">
+      <div class="eyebrow">Docs / その他</div>
+      <h1 class="page-title">フルパーマネント MAC 変更なし</h1>
+      <p class="page-lead">作業前後に注意すべき項目をまとめています。</p>
+
+      <p>RealtekまたはIntelのアダプターを搭載していて、以前はPERM MACオプションを使用してMACの設定を変更できていたのに、今はできなくなった場合、おそらく制限を超えてしまった可能性があります。</p>
+
+      <h2 class="section-title">推奨される恒久的な解決策</h2>
+      <ul>
+        <li><a href="https://www.amazon.com/dp/B00MYTSN18" target="_blank" rel="noopener noreferrer">USB 3.0 イーサネット アダプター</a>を約10ドルで購入します。</li>
+        <li>このアダプターには、独自のフラグのない工場出荷時のMACアドレスを持つ独自の内部チップが搭載されています。</li>
+        <li>使用方法：アダプターをUSB 3.0ポートに差し込み、イーサネットケーブルを接続するだけです。</li>
+        <li>重要：初めて接続したときに、スプーフィングソフトウェアを実行する必要はありません。アダプター自体が、箱から出してすぐに新しいクリーンなネットワークIDを提供します。</li>
+        <li>今後、再びブロックされた場合は、EFUSEが再びいっぱいになるまで、このアダプターの永続MACスプーフィング機能を約10～13回使用できます。</li>
+      </ul>
+
+      <div class="faq">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Wi-Fi MACアドレスの偽装を行った後、永続的なMACアドレスを設定しましたが、MACアドレスは変わりませんでしたか？</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>.BATファイルを管理者として実行し、もう一度MACアドレスのなりすましを試してください。</p>
+              <a class="video-link" href="https://605324365-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2F4LCMEzbOr1bRsZ606sPz%2Fuploads%2FBhel4NPdPuBFPbV7PFPt%2Fdel%20mac.rar?alt=media&token=615de1e9-5a47-45f6-a7e1-3d398004356a" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+                del mac.rar をダウンロード
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="caution-items"><span class="pn-label">前へ</span><span class="pn-name">← 遅延禁止</span></a>
+        <a class="pn-link" data-goto="common-errors" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">よくあるエラー修正 →</span></a>
+      </div>
+    </section>
+
+    <!-- よくあるエラー修正 -->
+    <section class="doc-page" id="page-common-errors">
+      <div class="eyebrow">Docs / サポート</div>
+      <h1 class="page-title">よくあるエラー修正</h1>
+      <p class="page-lead">作業中によく発生するエラーと対処法をまとめています。</p>
+
+      <div class="faq">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>DISK SP00Fが動作しない</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p><strong>解決策：</strong></p>
+              <a class="video-link" href="https://605324365-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2F4LCMEzbOr1bRsZ606sPz%2Fuploads%2FuJl2obLN0y2xzbQpJWfG%2FDISABLE%20Block.rar?alt=media&token=1034c743-9887-487c-87e3-774fb0e4c8b0" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+                DISABLE Block.rar をダウンロード
+              </a>
+              <p style="margin-top:12px;">ダウンロードして解凍し、管理者として実行してください。その後、PCを再起動してもう一度お試しください。</p>
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>ライセンス挿入後にローダーがクラッシュする</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Windowsの時刻が同期されていることを確認してください。</p>
+              <ol style="margin:0;">
+                <li>設定を開きます。</li>
+                <li>「時刻と言語」を選択します。</li>
+                <li>「日付と時刻」をクリックします。</li>
+                <li>「時計を同期する」オプションの下にある「今すぐ同期」ボタンを選択します。</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>PCブルースクリーン</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <ul style="margin:0;">
+                <li>バックグラウンドで実行されているすべてのアプリケーションを無効にしてください。</li>
+                <li>デバッガー、モニタリングツール、インジェクターが実行されていないことを確認してください（削除または終了してください）。</li>
+                <li>すべてのウイルス対策ソフト（外部のものも含む）が無効になっていることを確認してください。</li>
+                <li>コア分離を無効にする（Windowsセキュリティアプリを開き、「デバイスセキュリティ」＞「コア分離の詳細」に移動し、「メモリの整合性」をオフに切り替える）。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>シリアル番号は変更されません</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <ul style="margin:0 0 12px;">
+                <li>PCを再起動した後も含め、すべてのウイルス対策ソフトが無効になっていることを確認してください。</li>
+                <li>信頼済みプラットフォームモジュール（TPM）を無効にしてみてください。</li>
+              </ul>
+              <a class="video-link" href="https://streamable.com/sicp16" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                ASUS（Intel 00:00 / AMD 01:20）
+              </a><br>
+              <a class="video-link" href="https://streamable.com/n7q3dk" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                MSI（Intel 00:00 / AMD 01:05）
+              </a><br>
+              <a class="video-link" href="https://streamable.com/ec8u3s" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                Asrock（Intel 00:00 / AMD 01:35）
+              </a><br>
+              <a class="video-link" href="https://streamable.com/1qhn35" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                GIGABYTE（Intel 00:00 / AMD 01:50）
+              </a>
+              <p style="margin-top:12px;">Edgeブラウザをデフォルトブラウザとして使用しないでください。Braveなどの他のブラウザを使用してください。</p>
+              <p><strong>これらはどれも役に立ちませんでしたか？</strong></p>
+              <ul style="margin:0;">
+                <li>VPNを使用する</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>ASUS製マザーボードで、BIOSにUEFIブートが表示されない</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>こちらをお読みください：<a href="https://pastebin.com/ad1KMWpr" target="_blank" rel="noopener noreferrer">https://pastebin.com/ad1KMWpr</a></p>
+              <p>BIOSを起動し、以下の設定になっていることを確認してください：</p>
+              <ul style="margin:0 0 12px;">
+                <li>ブートモード → UEFI</li>
+                <li>CSM → 無効</li>
+              </ul>
+              <p style="margin:0;">それでもFAT32 UEFIボリュームに表示されない場合は、Discordでサポートチケットを開いてください。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="mac-permanent"><span class="pn-label">前へ</span><span class="pn-name">← フルパーマネント MAC 変更なし</span></a>
+        <a class="pn-link" data-goto="completion" style="text-align:right;"><span class="pn-label">次へ</span><span class="pn-name">完了 →</span></a>
+      </div>
+    </section>
+
+    <!-- 完了 -->
+    <section class="doc-page" id="page-completion">
+      <div class="eyebrow">Docs / サポート</div>
+      <h1 class="page-title">完了</h1>
+      <p class="page-lead">お疲れさまでした！全てのステップが完了しました。</p>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <div>
+          <ul style="margin:0;">
+            <li>終了後はローダーなど全ての関連ファイルを完全に削除してください。</li>
+            <li>一つでも手順を間違うと失敗します。失敗した場合の返金はできません。</li>
+          </ul>
+        </div>
+      </div>
+
+      <a class="video-link" href="https://discord.gg/proswipe" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Discordでお問い合わせ（discord.gg/proswipe）
+      </a>
+
+      <div class="prev-next">
+        <a class="pn-link" data-goto="common-errors"><span class="pn-label">前へ</span><span class="pn-name">← よくあるエラー修正</span></a>
+        <div></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const clickable = document.querySelectorAll('.nav-item, .nav-category, [data-goto]');
+  const pages = document.querySelectorAll('.doc-page');
+
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        entry.target.classList.add('visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+  function setupReveal(page){
+    page.querySelectorAll(':scope > *').forEach((el, i) => {
+      el.classList.add('reveal');
+      el.classList.remove('visible');
+      el.style.transitionDelay = Math.min(i, 6) * 60 + 'ms';
+      revealObserver.observe(el);
+    });
+  }
+
+  pages.forEach(setupReveal);
+
+  function showPage(name){
+    pages.forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
+    document.querySelectorAll('.nav-item, .nav-category').forEach(el => {
+      el.classList.toggle('active', el.dataset.page === name);
+    });
+    const activePage = document.getElementById('page-' + name);
+    if(activePage) setupReveal(activePage);
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  clickable.forEach(el => {
+    el.addEventListener('click', (e) => {
+      const target = el.dataset.page || el.dataset.goto;
+      if(!target) return;
+      e.preventDefault();
+      showPage(target);
+    });
+  });
+
+  document.querySelectorAll('.nav-category').forEach(cat => {
+    cat.addEventListener('click', (e) => {
+      cat.classList.toggle('open');
+      if (cat.dataset.page) {
+        e.preventDefault();
+        showPage(cat.dataset.page);
+      }
+    });
+  });
+
+  document.querySelectorAll('.faq-question').forEach(q => {
+    q.addEventListener('click', () => {
+      q.closest('.faq-item').classList.toggle('open');
+    });
+  });
+
+  document.querySelectorAll('.brand-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const brand = tab.dataset.brand;
+      const group = tab.closest('.brand-tabs').parentElement;
+      group.querySelectorAll('.brand-tab').forEach(t => t.classList.toggle('active', t === tab));
+      group.querySelectorAll('.brand-panel').forEach(p => p.classList.toggle('active', p.id === 'brand-' + brand));
+    });
+  });
+</script>
+</body>
+</html>
