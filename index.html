@@ -331,7 +331,7 @@
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
       </div>
       <div class="nav-subitems">
-        <div class="nav-item" data-page="bios-flash-va">BIOS FLASH (VALO)</div>
+        <div class="nav-item" data-page="bios-flash-va">BIOS FLASH (VALOのみ)</div>
         <div class="nav-item" data-page="normal-reinstall">通常の再インストール</div>
         <div class="nav-item" data-page="raid-reinstall-amd">RAID再インストール(AMD)</div>
         <div class="nav-item" data-page="raid-reinstall-intel">RAID再インストール(INTEL)</div>
@@ -633,27 +633,29 @@
 
       <p>カスタム：Windowsのみインストール（詳細設定）を選択してください</p>
       <img src="image/custom.png" alt="インストールの種類選択画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
-
-      <h2 class="section-title">ディスクバイパス手順！</h2>
+<h2 class="section-title">ディスクバイパス手順！</h2>
       <ol>
+        <li>まず、USBを一旦抜いてください。</li>
         <li>SHIFTキーとF10キーを同時に押してください（コマンドプロンプトが表示されます）。</li>
         <li>次に <span class="inline-code">diskpart</span> をCMDに書き込む</li>
         <li>次に、<span class="inline-code">list disk</span> をCMDに入力してすべてのドライブを表示します。</li>
-        <li><span class="inline-code">select disk 'X'</span>（X = ディスク番号）と入力し <span class="inline-code">clean</span>、USB以外のすべてのディスクに対して書き込みます。</li>
+        <li><span class="inline-code">select disk 0</span> と入力し、続けて <span class="inline-code">clean</span> と入力してください。</li>
       </ol>
-      <p>例えば、ほとんどの人はディスクを1つしか持っていません。その場合は、「select disk 1」と入力し、「clean」と入力します。ドライブが2つある場合は、「select disk 2」と入力し、「clean」と入力します。すべてのディスクに対して同様の手順を繰り返します。</p>
-
       <div class="callout warn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
         <div>フラッシュドライブ（USB）は通常、内蔵ハードドライブやSSDに比べてサイズが小さく、おそらくリストの一番最後に記載されています。<strong>フラッシュドライブ（USB）をクリーニングしないでください。</strong>ご不明な点がある場合は、サポートチケットを開いてください。</div>
       </div>
-
       <p>これで「ディスクのクリーンアップに成功しました」または「成功」に関連する何らかのメッセージが出力されるはずです。</p>
       <img src="image/diskpart.png" alt="diskpart実行画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
-
-      <p>コマンドプロンプトを閉じて「更新」をクリックしてください。以下のようになっていることを確認してください。</p>
+      <ol>
+        <li>クリーンが完了したら、コマンドプロンプトを閉じてください。</li>
+        <li>表示されているパーティション一覧の右側にある「削除」を、すべての項目に対して押してください。</li>
+        <li>すべて削除できたら「新規」を押してください（エラーが出た場合はそのまま「OK」を押して進めてください）。</li>
+        <li>作成が完了したら、「パーティション3」と「パーティション1」をそれぞれ「フォーマット」してください。</li>
+        <li>フォーマットが終わったら、USBを再度差し込み、右上の「×」ボタンから一度画面を閉じてください。</li>
+        <li>「インストール」を押し、「カスタムインストール」を選んでそのまま「次へ」を押してください。</li>
+      </ol>
       <img src="image/refresh.png" alt="ドライブ更新画面" style="max-width:100%; border-radius:10px; border:1px solid var(--panel-border); margin:12px 0; display:block;">
-
       <ol>
         <li>メインドライブ（未割り当て領域）を選択し、「次へ」をクリックします。</li>
         <li>インストールプロセスが開始されますので、オフラインアカウントを作成してください！</li>
